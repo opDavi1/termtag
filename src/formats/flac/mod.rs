@@ -45,19 +45,15 @@ impl AudioMetadata for FlacFile {
             if key == "album" {
                 metadata.album = value;
             } else if key == "albumartist" {
-                metadata.artist = value;
+                metadata.album_artist = value;
             } else if key == "artist" {
                 metadata.artist = value
             } else if key == "comment" {
                 metadata.comment = value;
             } else if key == "genre" {
                 metadata.genre = value;
-            } else if key == "year" {
-                metadata.year = value;
-            } else if key == "month" {
-                metadata.month = value;
-            } else if key == "day" {
-                metadata.day = value;
+            } else if key == "date" {
+                metadata.date = value;
             } else if key == "disknumber" {
                 metadata.disk_number = value;
             } else if key == "label" {
