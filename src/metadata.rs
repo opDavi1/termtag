@@ -16,6 +16,7 @@ pub struct Metadata {
     pub track_number: Option<String>,
 }
 
+
 pub trait AudioMetadata {
     fn read_metadata(&self) -> Result<Metadata, Error>;
     fn write_metadata(&self, metadata: &Metadata) -> Result<(), Error>;

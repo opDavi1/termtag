@@ -1,4 +1,4 @@
-pub mod flac;
+mod flac;
 
 use crate::metadata::AudioMetadata;
 use std::path::Path;

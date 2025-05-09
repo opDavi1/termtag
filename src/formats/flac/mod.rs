@@ -7,7 +7,8 @@ use std::{
 use crate::metadata::{AudioMetadata, Metadata};
 
 mod types;
-pub use types::*;
+use types::*;
+pub use types::FlacFile;
 
 
 // Every flac file starts with these 4 bytes
@@ -76,6 +77,7 @@ impl AudioMetadata for FlacFile {
     }
 }
 
+
 fn is_flac(data: &Vec<u8>) -> bool {
     let marker = match String::from_utf8(data[0..4].to_vec()) {
         Ok(m) => m,
@@ -83,6 +85,7 @@ fn is_flac(data: &Vec<u8>) -> bool {
     };
     marker == MAGIC
 }
+
 
 fn get_metadata_blocks(data: &Vec<u8>) -> Result<Vec<MetadataBlock>, Error> {
 

@@ -1,4 +1,4 @@
-use std::{fmt, path::Path};
+use std::path::Path;
 
 pub struct FlacFile {
     pub path: String,
@@ -11,6 +11,7 @@ impl FlacFile {
         }
     }
 }
+
 
 #[derive(Default)]
 pub struct MetadataBlock {
@@ -28,6 +29,7 @@ impl MetadataBlock {
         }
     }
 }
+
 
 #[derive(Debug, Default, PartialEq)]
 pub enum MetadataBlockType {
@@ -58,6 +60,7 @@ impl From<u8> for MetadataBlockType {
         }
     }
 }
+
 
 #[derive(Debug, Default)]
 pub struct VorbisCommentBlock {
@@ -117,6 +120,7 @@ impl From<&Vec<u8>> for VorbisCommentBlock {
         VorbisCommentBlock::new(vendor_length, vendor, num_fields, Some(fields))
     }
 }
+
 
 #[derive(Debug, Default)]
 pub struct VorbisComment {
