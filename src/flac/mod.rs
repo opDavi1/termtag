@@ -74,21 +74,21 @@ pub fn get_metadata(path: &Path) -> Result<Vec<Metadata>, Error> {
         let header = data[index..=index+3].to_vec();
         index += 4;
 
-        is_last_block = match header[0] & 1 {
+        is_last_block = match header[0] & 0b10000000 {
             0 => false,
             1 => true,
             _ => true,
         };
         println!("Is last block: {:?}", is_last_block);
 
-        let metadata_type = MetadataType::from(header[0] >> 1);
+        let metadata_type = MetadataType::from(header[0] & 0b01111111);
         println!("Metadata type: {:?}", metadata_type);
 
         let length = usize::from_be_bytes([0, 0, 0, 0, 0, header[1], header[2], header[3]]);
         println!("Metadata length: {:?}", length);
 
         let data: Vec<u8> = data[index..index+length].to_vec();
-        println!("Data: {:?}", data);
+        println!("Data: {:?}\n", data);
 
         index += length;
         metadata_list.push(Metadata::new(
