@@ -1,1 +1,6 @@
+# Rust
 /target
+
+# Project specific
+*.flac
+output.txt
