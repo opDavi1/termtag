@@ -1,9 +1,26 @@
-use std::path::Path;
+use clap::Parser;
+use std::{env, path::Path};
 
+mod cli;
 mod formats;
 mod metadata;
 
 fn main() {
-    let file = formats::load_file(Path::new("./test.flac")).unwrap();
-    let _ = file.read_metadata().unwrap();
+    let cli = cli::Cli::parse();
+    let path = cli.path;
+
+    let file = match formats::load_file(&path) {
+        Some(f) => f,
+        None => {
+            eprintln!("Error: File type not supported.");
+            return;
+        }
+    };
+    let metadata = match file.read_metadata() {
+        Ok(m) => m,
+        Err(e) => {
+            eprintln!("{}", e);
+            return;
+        }
+    };
 }

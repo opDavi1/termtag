@@ -1,6 +1,12 @@
 [package]
 name = "termtag"
 version = "0.1.0"
+authors = ["Davis Sherman <davissherman69@gmail.com>"]
 edition = "2024"
+description = "A simple music file tag editor for the terminal."
+readme = "README.md"
+repository = "https://github.com/opDavi1/termtag"
+license = "GPL-3.0-or-later"
 
 [dependencies]
+clap = { version = "4.0", features = ["derive"] }

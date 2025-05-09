@@ -1,13 +1,13 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub struct FlacFile {
-    pub path: String,
+    pub path: PathBuf,
 }
 
 impl FlacFile {
     pub fn new(path: &Path) -> Self {
         Self {
-            path: path.to_string_lossy().to_string(),
+            path: path.to_path_buf(),
         }
     }
 }
