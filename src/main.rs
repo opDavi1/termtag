@@ -1,7 +1,9 @@
 use std::path::Path;
 
-mod flac;
+mod formats;
+mod metadata;
 
 fn main() {
-    let _ = flac::get_metadata(Path::new("./test.flac"));
+    let file = formats::load_file(Path::new("./test.flac")).unwrap();
+    let _ = file.read_metadata().unwrap();
 }
