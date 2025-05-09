@@ -19,9 +19,14 @@ const METADATA_TYPE_FLAG: u8 = 0b01111111;
 impl AudioMetadata for FlacFile {
     fn read_metadata(&self) -> Result<Metadata, Error> {
         let metadata_blocks = get_metadata_blocks(Path::new(&self.path)).unwrap();
-        let vorbis_comment = metadata_blocks
+        let vorbis_comment_block= match metadata_blocks
         .iter()
-        .filter(|block| block.metadata_type == MetadataBlockType::VorbisComment);
+        .filter(|block| block.metadata_type == MetadataBlockType::VorbisComment)
+        .nth(0) {
+            Some(b) => VorbisCommentBlock::from(b.data.clone()),
+            None => VorbisCommentBlock::default(),
+        };
+        
 
         Ok(Metadata::default())
     }
