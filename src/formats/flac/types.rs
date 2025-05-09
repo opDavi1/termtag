@@ -59,16 +59,28 @@ impl From<u8> for MetadataBlockType {
     }
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct VorbisCommentBlock {
-    vendor_length: usize,
-    vendor: String,
-    num_fields: usize,
-    fields: Vec<VorbisComment>,
+    pub vendor_length: usize,
+    pub vendor: String,
+    pub num_fields: usize,
+    pub fields: Option<Vec<VorbisComment>>,
 }
 
-impl From<Vec<u8>> for VorbisCommentBlock {
-    fn from(data: Vec<u8>) -> Self {
+impl VorbisCommentBlock {
+    pub fn new(vendor_length: usize, vendor: String, num_fields: usize, fields: Option<Vec<VorbisComment>>) -> Self {
+        VorbisCommentBlock {
+            vendor_length,
+            vendor,
+            num_fields,
+            fields
+        }
+    }
+}
+
+impl From<&Vec<u8>> for VorbisCommentBlock {
+    fn from(data: &Vec<u8>) -> Self {
+        // The length fields in the Vorbis Comment metadata block are little endian instead of big endian like the rest of FLAC.
         let vendor_length = usize::from_le_bytes([data[0], data[1], data[2], data[3], 0, 0, 0, 0]);
         let mut index = 4;
 
@@ -76,19 +88,49 @@ impl From<Vec<u8>> for VorbisCommentBlock {
             .to_vec())
             .unwrap_or(String::from("Unknown Vendor")); 
         index += vendor_length;
-        println!("Vendor: {:?}", vendor);
         
         let num_fields = usize::from_le_bytes([data[index], data[index+1], data[index+2], data[index+3], 0, 0, 0, 0]);
-        println!("Number of fields: {:?}", num_fields);
+        index += 4;
         
+        if num_fields == 0 {
+            return VorbisCommentBlock::new(vendor_length, vendor, num_fields, None );
+        }
 
-        VorbisCommentBlock { vendor_length, vendor, num_fields, fields: vec![VorbisComment::default()] }
+        let mut fields: Vec<VorbisComment> = Vec::new();
+        for _ in 0..num_fields {
+            let length = usize::from_le_bytes([data[index], data[index+1], data[index+2], data[index+3], 0, 0, 0, 0]);
+            index += 4;
+
+            let string = String::from_utf8(data[index..index+length].to_vec())
+            .unwrap_or(String::new());
+            index += length;
+
+            if let Some(pos) = string.find("=") {
+                let (key, value) = string.split_at(pos);
+                fields.push(VorbisComment::new(
+                    length,
+                    key.to_string(),
+                    value[1..].to_string(),
+                ))
+            }
+        }
+        VorbisCommentBlock::new(vendor_length, vendor, num_fields, Some(fields))
     }
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct VorbisComment {
-    length: usize,
-    key: String,
-    value: String,
+    pub length: usize,
+    pub key: String,
+    pub value: String,
+}
+
+impl VorbisComment {
+    pub fn new(length: usize, key: String, value: String) -> Self {
+        VorbisComment {
+            length,
+            key,
+            value ,
+        }
+    }
 }

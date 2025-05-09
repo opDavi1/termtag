@@ -18,17 +18,57 @@ const METADATA_TYPE_FLAG: u8 = 0b01111111;
 
 impl AudioMetadata for FlacFile {
     fn read_metadata(&self) -> Result<Metadata, Error> {
-        let metadata_blocks = get_metadata_blocks(Path::new(&self.path)).unwrap();
+        let data: Vec<u8> = fs::read(&self.path)?;
+        if !is_flac(&data) {
+            return Err(Error::new(ErrorKind::InvalidData, "Given path is not a FLAC file."));
+        }
+
+        let metadata_blocks = get_metadata_blocks(&data)?;
         let vorbis_comment_block= match metadata_blocks
         .iter()
         .filter(|block| block.metadata_type == MetadataBlockType::VorbisComment)
         .nth(0) {
-            Some(b) => VorbisCommentBlock::from(b.data.clone()),
+            Some(b) => VorbisCommentBlock::from(&b.data),
             None => VorbisCommentBlock::default(),
         };
-        
 
-        Ok(Metadata::default())
+        let fields = match vorbis_comment_block.fields {
+            Some(f) => f,
+            None => return Ok(Metadata::default()),
+        };
+
+        let mut metadata = Metadata::default();
+        for field in fields.iter() {
+            let key = field.key.to_lowercase();
+            let value = Some(field.value.clone());
+            if key == "album" {
+                metadata.album = value;
+            } else if key == "albumartist" {
+                metadata.artist = value;
+            } else if key == "artist" {
+                metadata.artist = value
+            } else if key == "comment" {
+                metadata.comment = value;
+            } else if key == "genre" {
+                metadata.genre = value;
+            } else if key == "year" {
+                metadata.year = value;
+            } else if key == "month" {
+                metadata.month = value;
+            } else if key == "day" {
+                metadata.day = value;
+            } else if key == "disknumber" {
+                metadata.disk_number = value;
+            } else if key == "label" {
+                metadata.label = value;
+            } else if key == "title" {
+                metadata.title = value;
+            } else if key == "tracknumber" {
+                metadata.track_number = value;
+            }
+        };
+        eprintln!("Metadata: {:?}", metadata);
+        Ok(metadata)
     }
     
     fn write_metadata(&self, metadata: &Metadata) -> Result<(), Error> {
@@ -44,11 +84,7 @@ fn is_flac(data: &Vec<u8>) -> bool {
     marker == MAGIC
 }
 
-fn get_metadata_blocks(path: &Path) -> Result<Vec<MetadataBlock>, Error> {
-    let data: Vec<u8> = fs::read(path)?;
-    if !is_flac(&data) {
-        return Err(Error::new(ErrorKind::InvalidData, "Given file is not FLAC."));
-    }
+fn get_metadata_blocks(data: &Vec<u8>) -> Result<Vec<MetadataBlock>, Error> {
 
     let mut index: usize = 4;
     let mut metadata_list: Vec<MetadataBlock> = Vec::new();
@@ -61,18 +97,12 @@ fn get_metadata_blocks(path: &Path) -> Result<Vec<MetadataBlock>, Error> {
             0 => false,
             _ => true,
         };
-        println!("Is last block: {:?}", is_last_block);
 
         let metadata_type = MetadataBlockType::from(header[0] & METADATA_TYPE_FLAG);
-        println!("Metadata type: {:?}", metadata_type);
-
         let length = usize::from_be_bytes([0, 0, 0, 0, 0, header[1], header[2], header[3]]);
-        println!("Metadata length: {:?}", length);
-
         let data: Vec<u8> = data[index..index+length].to_vec();
-        println!("Data: {:?}\n", data);
-
         index += length;
+
         metadata_list.push(MetadataBlock::new(
             metadata_type,
             length,
