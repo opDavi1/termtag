@@ -1,6 +1,13 @@
 use std::io::Error;
 
 #[derive(Debug, Default)]
+/* TODO: add fields from Streaminfo such as sample rate, number of channels,
+ * and bits per sample, as well as the vender field from the Vorbis comment.
+ */
+
+/* TODO: add support for multiple artist tags; make artist an Option<Vec<String>>
+ * or something
+ */
 pub struct Metadata {
     pub album: Option<String>,
     pub album_artist: Option<String>,

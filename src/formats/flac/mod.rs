@@ -125,7 +125,9 @@ impl AudioMetadata for FlacFile {
             Some(f) => f,
             None => return Ok(Metadata::default()),
         };
+        println!("{:?}", fields);
 
+        // TODO: refactor this into "impl From<VorbisCommentBlock> for Metadata" or something
         let mut metadata = Metadata::default();
         for field in fields.iter() {
             let key = field.key.to_lowercase();
