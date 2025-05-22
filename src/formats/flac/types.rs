@@ -1,7 +1,10 @@
-// This file is part of termtag by Davis Sherman <davissherman2007@gmail.com> licensed under the GPL-3.0-or-later license.
+// This file is part of termtag licensed under the GPL-3.0-or-later license.
 // See the included LICENSE file or go to <https://www.gnu.org/licenses/> for more information.
 
 use std::path::{Path, PathBuf};
+
+use crate::metadata::Metadatum;
+
 
 pub struct FlacFile {
     pub path: PathBuf,
@@ -40,20 +43,4 @@ pub struct VorbisCommentBlock {
     pub fields: Option<Vec<VorbisComment>>,
 }
 
-
-#[derive(Debug, Default)]
-pub struct VorbisComment {
-    pub length: usize,
-    pub key: String,
-    pub value: String,
-}
-
-impl VorbisComment {
-    pub fn new(length: usize, key: String, value: String) -> Self {
-        VorbisComment {
-            length,
-            key,
-            value ,
-        }
-    }
-}
+pub type VorbisComment = Metadatum;

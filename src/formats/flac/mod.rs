@@ -1,4 +1,4 @@
-// This file is part of termtag by Davis Sherman <davissherman2007@gmail.com> licensed under the GPL-3.0-or-later license.
+// This file is part of termtag licensed under the GPL-3.0-or-later license.
 // See the included LICENSE file or go to <https://www.gnu.org/licenses/> for more information.
 
 use std::{
@@ -14,7 +14,7 @@ use types::*;
 pub use types::FlacFile;
 
 
-// Every flac file starts with these 4 bytes
+// Every flac file starts with these 4 bytes as defined in the flac standard
 const MAGIC: &str = "fLaC";
 const LAST_BLOCK_FLAG: u8 = 0b10000000;
 const METADATA_TYPE_FLAG: u8 = 0b01111111;
@@ -25,6 +25,13 @@ impl FlacFile {
         Self {
             path: path.to_path_buf(),
         }
+    }
+}
+
+
+impl From<VorbisCommentBlock> for Metadata {
+    fn from(value: VorbisCommentBlock) -> Self {
+        Metadata { fields: value.fields }
     }
 }
 
@@ -116,47 +123,15 @@ impl AudioMetadata for FlacFile {
         }
 
         let metadata_blocks = get_metadata_blocks(&data)?;
-        let vorbis_comment_block= match metadata_blocks
+        let vorbis_comment_block: VorbisCommentBlock = match metadata_blocks
         .iter()
         .filter(|block| block.metadata_type == MetadataBlockType::VorbisComment)
-        .nth(0) {
+        .next() {
             Some(b) => VorbisCommentBlock::from(&b.data),
             None => VorbisCommentBlock::default(),
         };
 
-        let fields = match vorbis_comment_block.fields {
-            Some(f) => f,
-            None => return Ok(Metadata::default()),
-        };
-        println!("{:?}", fields);
-
-        // TODO: refactor this into "impl From<VorbisCommentBlock> for Metadata" or something
-        let mut metadata = Metadata::default();
-        for field in fields.iter() {
-            let key = field.key.to_lowercase();
-            let value = Some(field.value.clone());
-            if key == "album" {
-                metadata.album = value;
-            } else if key == "albumartist" {
-                metadata.album_artist = value;
-            } else if key == "artist" {
-                metadata.artist = value
-            } else if key == "comment" {
-                metadata.comment = value;
-            } else if key == "genre" {
-                metadata.genre = value;
-            } else if key == "date" {
-                metadata.date = value;
-            } else if key == "disknumber" {
-                metadata.disk_number = value;
-            } else if key == "label" {
-                metadata.label = value;
-            } else if key == "title" {
-                metadata.title = value;
-            } else if key == "tracknumber" {
-                metadata.track_number = value;
-            }
-        };
+        let metadata = Metadata::from(vorbis_comment_block);
         eprintln!("Metadata: {:?}", metadata);
         Ok(metadata)
     }

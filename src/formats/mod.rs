@@ -1,4 +1,4 @@
-// This file is part of termtag by Davis Sherman <davissherman2007@gmail.com> licensed under the GPL-3.0-or-later license.
+// This file is part of termtag licensed under the GPL-3.0-or-later license.
 // See the included LICENSE file or go to <https://www.gnu.org/licenses/> for more information.
 
 mod flac;

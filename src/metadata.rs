@@ -1,4 +1,4 @@
-// This file is part of termtag by Davis Sherman <davissherman2007@gmail.com> licensed under the GPL-3.0-or-later license.
+// This file is part of termtag licensed under the GPL-3.0-or-later license.
 // See the included LICENSE file or go to <https://www.gnu.org/licenses/> for more information.
 
 use std::io::Error;
@@ -11,6 +11,8 @@ use std::io::Error;
 /* TODO: add support for multiple artist tags; make artist an Option<Vec<String>>
  * or something
  */
+
+/*
 pub struct Metadata {
     pub album: Option<String>,
     pub album_artist: Option<String>,
@@ -22,6 +24,28 @@ pub struct Metadata {
     pub label: Option<String>,
     pub title: Option<String>,
     pub track_number: Option<String>,
+}
+*/
+
+pub struct Metadata {
+    pub fields: Option<Vec<Metadatum>>,
+}
+
+#[derive(Debug, Default)]
+pub struct Metadatum {
+    pub length: usize,
+    pub key: String,
+    pub value: String,
+}
+
+impl Metadatum {
+    pub fn new(length: usize, key: String, value: String) -> Self {
+        Metadatum {
+            length,
+            key,
+            value ,
+        }
+    }
 }
 
 
