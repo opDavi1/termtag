@@ -131,6 +131,13 @@ impl AudioMetadata for FlacFile {
             None => VorbisCommentBlock::default(),
         };
 
+        let picture_blocks: Vec<&MetadataBlock> = metadata_blocks
+            .iter()
+            .filter(|block| block.metadata_type == MetadataBlockType::Picture)
+            .collect();
+        
+        println!("{:?}", picture_blocks);
+
         let metadata = Metadata::from(vorbis_comment_block);
         eprintln!("Metadata: {:?}", metadata);
         Ok(metadata)

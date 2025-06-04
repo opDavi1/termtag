@@ -11,7 +11,7 @@ pub struct FlacFile {
 }
 
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct MetadataBlock {
     pub metadata_type: MetadataBlockType,
     pub length: usize,
@@ -32,6 +32,37 @@ pub enum MetadataBlockType {
     Picture,
     Reserved,
     Forbidden = 127,
+}
+
+
+pub struct PictureBlock {
+    pub picture_type: PictureType,
+    pub media_type_length: usize,
+}
+
+
+pub enum PictureType {
+    Other = 0,
+    PNG,
+    GeneralIcon,
+    FrontCover,
+    BackCover,
+    LinerNotes,
+    MediaLabel,
+    LeadArtist,
+    ArtistOrPerformer,
+    Conductor,
+    BandOrOrchestra,
+    Composer,
+    Lyricist,
+    RecordingLocation,
+    DuringRecording,
+    DuringPerformance,
+    MovieOrScreenCapture,
+    ABrightColoredFish,
+    Illustration,
+    BandOrArtistLogotype,
+    PublisherOrStudioLogotype,
 }
 
 
