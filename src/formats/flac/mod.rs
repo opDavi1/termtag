@@ -11,9 +11,9 @@ use std::{
 
 
 // Every flac file starts with these 4 bytes as defined in the flac standard
-const FLAC_MAGIC: &str = "fLaC";
-const LAST_BLOCK_FLAG: u8 = 0x80; //10000000
-const METADATA_TYPE_FLAG: u8 = 0x7F; //01111111
+const FLAC_MAGIC: [u8; 4] = [0x66, 0x4C, 0x61, 0x43]; // "fLaC"
+const LAST_BLOCK_FLAG: u8 = 0x80; // 10000000
+const METADATA_TYPE_FLAG: u8 = 0x7F; // 01111111
 
 
 pub struct FlacFile {
@@ -211,6 +211,17 @@ pub type VorbisComment = Metadatum;
 
 fn get_metadata_blocks(data: &Vec<u8>) -> Result<Vec<MetadataBlock>, Error> {
 
+    let data_len = data.len();
+    
+    if data.len() < 4 {
+        return Err(
+            Error::new(
+                ErrorKind::InvalidData, 
+                "Invalid or corrupt FLAC file detected"
+            )
+        );
+    }
+
     let mut index: usize = 4;
     let mut metadata_list: Vec<MetadataBlock> = Vec::new();
     let mut is_last_block = false;
@@ -225,6 +236,16 @@ fn get_metadata_blocks(data: &Vec<u8>) -> Result<Vec<MetadataBlock>, Error> {
 
         let metadata_type = MetadataBlockType::from(header[0] & METADATA_TYPE_FLAG);
         let length = usize::from_be_bytes([0, 0, 0, 0, 0, header[1], header[2], header[3]]);
+        
+        if index + length > data_len {
+            return Err(
+                Error::new(
+                    ErrorKind::InvalidData,
+                    "Invalid or corrupt FLAC file given"
+                )
+            );
+        }
+
         let data: Vec<u8> = data[index..index+length].to_vec();
         index += length;
 
@@ -240,9 +261,5 @@ fn get_metadata_blocks(data: &Vec<u8>) -> Result<Vec<MetadataBlock>, Error> {
 
 
 fn is_flac(data: &Vec<u8>) -> bool {
-    let marker = match String::from_utf8(data[0..4].to_vec()) {
-        Ok(m) => m,
-        Err(_) => return false,
-    };
-    marker == FLAC_MAGIC
+    data[0..4] == FLAC_MAGIC
 }
