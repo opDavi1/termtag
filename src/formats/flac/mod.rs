@@ -1,24 +1,24 @@
 // This file is part of termtag licensed under the GPL-3.0-or-later license.
 // See the included LICENSE file or go to <https://www.gnu.org/licenses/> for more information.
 
+use crate::metadata::{AudioMetadata, Metadata, Metadatum};
+
 use std::{
     fs,
     io::{Error, ErrorKind},
-    path::Path,
+    path::{Path, PathBuf},
 };
-
-use crate::metadata::{AudioMetadata, Metadata};
-
-mod types;
-use types::*;
-pub use types::FlacFile;
 
 
 // Every flac file starts with these 4 bytes as defined in the flac standard
-const MAGIC: &str = "fLaC";
-const LAST_BLOCK_FLAG: u8 = 0b10000000;
-const METADATA_TYPE_FLAG: u8 = 0b01111111;
+const FLAC_MAGIC: &str = "fLaC";
+const LAST_BLOCK_FLAG: u8 = 0x80; //10000000
+const METADATA_TYPE_FLAG: u8 = 0x7F; //01111111
 
+
+pub struct FlacFile {
+    pub path: PathBuf,
+}
 
 impl FlacFile {
     pub fn new(path: &Path) -> Self {
@@ -28,6 +28,38 @@ impl FlacFile {
     }
 }
 
+impl AudioMetadata for FlacFile {
+    fn read_metadata(&self) -> Result<Metadata, Error> {
+        let data: Vec<u8> = fs::read(&self.path)?;
+        if !is_flac(&data) {
+            return Err(Error::new(ErrorKind::InvalidData, "Given path is not a FLAC file."));
+        }
+
+        let metadata_blocks = get_metadata_blocks(&data)?;
+        let vorbis_comment_block: VorbisCommentBlock = match metadata_blocks
+        .iter()
+        .filter(|block| block.metadata_type == MetadataBlockType::VorbisComment)
+        .next() {
+            Some(b) => VorbisCommentBlock::from(&b.data),
+            None => VorbisCommentBlock::default(),
+        };
+
+        let picture_blocks: Vec<&MetadataBlock> = metadata_blocks
+            .iter()
+            .filter(|block| block.metadata_type == MetadataBlockType::Picture)
+            .collect();
+        
+        println!("{:?}", picture_blocks);
+
+        let metadata = Metadata::from(vorbis_comment_block);
+        eprintln!("Metadata: {:?}", metadata);
+        Ok(metadata)
+    }
+    
+    fn write_metadata(&self, metadata: &Metadata) -> Result<(), Error> {
+        todo!()
+    }
+}
 
 impl From<VorbisCommentBlock> for Metadata {
     fn from(value: VorbisCommentBlock) -> Self {
@@ -35,6 +67,12 @@ impl From<VorbisCommentBlock> for Metadata {
     }
 }
 
+#[derive(Debug, Default)]
+pub struct MetadataBlock {
+    pub metadata_type: MetadataBlockType,
+    pub length: usize,
+    pub data: Vec<u8>,
+}
 
 impl MetadataBlock {
     pub fn new(metadata_type: MetadataBlockType, length: usize, data: Vec<u8>) -> Self {
@@ -46,6 +84,20 @@ impl MetadataBlock {
     }
 }
 
+
+#[derive(Debug, Default, PartialEq)]
+pub enum MetadataBlockType {
+    #[default]
+    StreamInfo,
+    Padding,
+    Application,
+    SeekTable,
+    VorbisComment,
+    Cuesheet,
+    Picture,
+    Reserved,
+    Forbidden = 127,
+}
 
 impl From<u8> for MetadataBlockType {
     fn from(value: u8) -> Self {
@@ -63,6 +115,45 @@ impl From<u8> for MetadataBlockType {
     }
 }
 
+
+pub struct PictureBlock {
+    pub picture_type: PictureType,
+    pub media_type_length: usize,
+}
+
+
+pub enum PictureType {
+    Other = 0,
+    PNG,
+    GeneralIcon,
+    FrontCover,
+    BackCover,
+    LinerNotes,
+    MediaLabel,
+    LeadArtist,
+    ArtistOrPerformer,
+    Conductor,
+    BandOrOrchestra,
+    Composer,
+    Lyricist,
+    RecordingLocation,
+    DuringRecording,
+    DuringPerformance,
+    MovieOrScreenCapture,
+    ABrightColoredFish,
+    Illustration,
+    BandOrArtistLogotype,
+    PublisherOrStudioLogotype,
+}
+
+
+#[derive(Debug, Default)]
+pub struct VorbisCommentBlock {
+    pub vendor_length: usize,
+    pub vendor: String,
+    pub num_fields: usize,
+    pub fields: Option<Vec<VorbisComment>>,
+}
 
 impl VorbisCommentBlock {
     pub fn new(vendor_length: usize, vendor: String, num_fields: usize, fields: Option<Vec<VorbisComment>>) -> Self {
@@ -115,38 +206,7 @@ impl From<&Vec<u8>> for VorbisCommentBlock {
     }
 }
 
-impl AudioMetadata for FlacFile {
-    fn read_metadata(&self) -> Result<Metadata, Error> {
-        let data: Vec<u8> = fs::read(&self.path)?;
-        if !is_flac(&data) {
-            return Err(Error::new(ErrorKind::InvalidData, "Given path is not a FLAC file."));
-        }
-
-        let metadata_blocks = get_metadata_blocks(&data)?;
-        let vorbis_comment_block: VorbisCommentBlock = match metadata_blocks
-        .iter()
-        .filter(|block| block.metadata_type == MetadataBlockType::VorbisComment)
-        .next() {
-            Some(b) => VorbisCommentBlock::from(&b.data),
-            None => VorbisCommentBlock::default(),
-        };
-
-        let picture_blocks: Vec<&MetadataBlock> = metadata_blocks
-            .iter()
-            .filter(|block| block.metadata_type == MetadataBlockType::Picture)
-            .collect();
-        
-        println!("{:?}", picture_blocks);
-
-        let metadata = Metadata::from(vorbis_comment_block);
-        eprintln!("Metadata: {:?}", metadata);
-        Ok(metadata)
-    }
-    
-    fn write_metadata(&self, metadata: &Metadata) -> Result<(), Error> {
-        todo!()
-    }
-}
+pub type VorbisComment = Metadatum;
 
 
 fn get_metadata_blocks(data: &Vec<u8>) -> Result<Vec<MetadataBlock>, Error> {
@@ -184,5 +244,5 @@ fn is_flac(data: &Vec<u8>) -> bool {
         Ok(m) => m,
         Err(_) => return false,
     };
-    marker == MAGIC
+    marker == FLAC_MAGIC
 }
