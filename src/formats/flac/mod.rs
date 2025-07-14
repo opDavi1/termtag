@@ -37,9 +37,9 @@ impl AudioMetadata for FlacFile {
 
         let metadata_blocks = get_metadata_blocks(&data)?;
         let vorbis_comment_block: VorbisCommentBlock = match metadata_blocks
-        .iter()
-        .filter(|block| block.metadata_type == MetadataBlockType::VorbisComment)
-        .next() {
+            .iter()
+            .filter(|block| block.metadata_type == MetadataBlockType::VorbisComment)
+            .next() {
             Some(b) => VorbisCommentBlock::from(&b.data),
             None => VorbisCommentBlock::default(),
         };
@@ -48,14 +48,14 @@ impl AudioMetadata for FlacFile {
             .iter()
             .filter(|block| block.metadata_type == MetadataBlockType::Picture)
             .collect();
-        
+
         println!("{:?}", picture_blocks);
 
         let metadata = Metadata::from(vorbis_comment_block);
         eprintln!("Metadata: {:?}", metadata);
         Ok(metadata)
     }
-    
+
     fn write_metadata(&self, metadata: &Metadata) -> Result<(), Error> {
         todo!()
     }
@@ -176,10 +176,10 @@ impl From<&Vec<u8>> for VorbisCommentBlock {
             .to_vec())
             .unwrap_or(String::from("Unknown Vendor")); 
         index += vendor_length;
-        
+
         let num_fields = usize::from_le_bytes([data[index], data[index+1], data[index+2], data[index+3], 0, 0, 0, 0]);
         index += 4;
-        
+
         if num_fields == 0 {
             return VorbisCommentBlock::new(vendor_length, vendor, num_fields, None );
         }
@@ -190,7 +190,7 @@ impl From<&Vec<u8>> for VorbisCommentBlock {
             index += 4;
 
             let string = String::from_utf8(data[index..index+length].to_vec())
-            .unwrap_or(String::new());
+                .unwrap_or(String::new());
             index += length;
 
             if let Some(pos) = string.find("=") {
@@ -212,7 +212,7 @@ pub type VorbisComment = Metadatum;
 fn get_metadata_blocks(data: &Vec<u8>) -> Result<Vec<MetadataBlock>, Error> {
 
     let data_len = data.len();
-    
+
     if data.len() < 4 {
         return Err(
             Error::new(
@@ -236,7 +236,7 @@ fn get_metadata_blocks(data: &Vec<u8>) -> Result<Vec<MetadataBlock>, Error> {
 
         let metadata_type = MetadataBlockType::from(header[0] & METADATA_TYPE_FLAG);
         let length = usize::from_be_bytes([0, 0, 0, 0, 0, header[1], header[2], header[3]]);
-        
+
         if index + length > data_len {
             return Err(
                 Error::new(

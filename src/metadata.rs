@@ -8,10 +8,6 @@ use std::io::Error;
  * and bits per sample, as well as the vender field from the Vorbis comment.
  */
 
-/* TODO: add support for multiple artist tags; make artist an Option<Vec<String>>
- * or something
- */
-
 /*
 pub struct Metadata {
     pub album: Option<String>,
