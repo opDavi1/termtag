@@ -29,18 +29,22 @@ pub struct Metadata {
 
 #[derive(Debug, Default)]
 pub struct Metadatum {
-    pub length: usize,
     pub key: String,
     pub value: String,
 }
 
 impl Metadatum {
-    pub fn new(length: usize, key: String, value: String) -> Self {
+    pub fn new(key: String, value: String) -> Self {
         Metadatum {
-            length,
             key,
             value ,
         }
+    }
+
+    pub fn header_length(&self) -> u64 {
+        // we add 1 here because of the '=' that is required between the key and value in the
+        // metadata.
+        (self.key.len() + self.value.len() + 1).try_into().unwrap()
     }
 }
 

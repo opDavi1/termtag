@@ -25,17 +25,19 @@ impl From<VorbisCommentBlock> for Metadata {
 #[derive(Debug, Default)]
 pub struct MetadataBlock {
     pub metadata_type: MetadataBlockType,
-    pub length: usize,
     pub data: Vec<u8>,
 }
 
 impl MetadataBlock {
-    pub fn new(metadata_type: MetadataBlockType, length: usize, data: Vec<u8>) -> Self {
+    pub fn new(metadata_type: MetadataBlockType, data: Vec<u8>) -> Self {
         MetadataBlock {
             metadata_type,
-            length,
             data,
         }
+    }
+
+    pub fn header_length(&self) -> u64 {
+        self.data.len().try_into().unwrap()
     }
 }
 
@@ -100,6 +102,7 @@ pub enum PictureType {
     PublisherOrStudioLogotype,
 }
 
+pub type VorbisComment = Metadatum;
 
 #[derive(Debug, Default)]
 pub struct VorbisCommentBlock {
@@ -151,7 +154,6 @@ impl From<&Vec<u8>> for VorbisCommentBlock {
             if let Some(pos) = string.find("=") {
                 let (key, value) = string.split_at(pos);
                 fields.push(VorbisComment::new(
-                    length,
                     key.to_string(),
                     value[1..].to_string(),
                 ))
@@ -160,5 +162,3 @@ impl From<&Vec<u8>> for VorbisCommentBlock {
         VorbisCommentBlock::new(vendor_length, vendor, num_fields, Some(fields))
     }
 }
-
-pub type VorbisComment = Metadatum;

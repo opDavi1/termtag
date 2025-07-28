@@ -10,6 +10,7 @@ pub use types::FlacFile;
 use std::{
     fs,
     io::{Error, ErrorKind},
+    path::PathBuf,
 };
 
 
@@ -53,6 +54,14 @@ impl AudioMetadata for FlacFile {
     }
 }
 
+
+fn write_metadata(file: &PathBuf, metadata: &Metadata) -> Result<(), std::io::Error> {
+    // let bytes = metadata.to_bytes();
+    Ok(())
+
+}
+
+
 fn get_metadata_blocks(data: &Vec<u8>) -> Result<Vec<MetadataBlock>, Error> {
 
     let data_len = data.len();
@@ -95,7 +104,6 @@ fn get_metadata_blocks(data: &Vec<u8>) -> Result<Vec<MetadataBlock>, Error> {
 
         metadata_list.push(MetadataBlock::new(
             metadata_type,
-            length,
             data,
         ));
     }
