@@ -20,26 +20,26 @@ pub struct Cli {
 
     /// Set the album
     #[arg(short='A', long)]
-    pub album: String,
+    pub album: Option<String>,
 
     /// Set the primary artist(s)
     #[arg(short, long, num_args=1.., value_delimiter = ' ')]
-    pub artist: Vec<String>,
+    pub artist: Option<Vec<String>>,
 
     /// Set the comment
     #[arg(short, long)]
-    pub comment: String,
+    pub comment: Option<String>,
 
     /// Set the disk number
     #[arg(short, long)]
-    pub disk_number: u32,
+    pub disk_number: Option<u32>,
 
     /// Set the title of the song
     #[arg(short, long)]
-    pub title: String,
+    pub title: Option<String>,
 
     /// Set the track number.
     #[arg(short='n', long="number")]
-    pub track_number: u32,
+    pub track_number: Option<u32>,
 
 }
