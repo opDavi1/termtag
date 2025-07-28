@@ -8,6 +8,38 @@ use clap::Parser;
 #[command(version, about, long_about = None)]
 pub struct Cli {
     /// Path of the audio file to edit
-    // #[arg(short, long)]
     pub path: std::path::PathBuf,
+
+    /// Show the current metadata of the audio file
+    #[arg(short, long)]
+    pub list: bool,
+
+    /// Edit the metadata of a given audio file. Use with -a, -A, -s, etc.
+    #[arg(short, long)]
+    pub edit: bool,
+
+    /// Set the album
+    #[arg(short='A', long)]
+    pub album: String,
+
+    /// Set the primary artist(s)
+    #[arg(short, long, num_args=1.., value_delimiter = ' ')]
+    pub artist: Vec<String>,
+
+    /// Set the comment
+    #[arg(short, long)]
+    pub comment: String,
+
+    /// Set the disk number
+    #[arg(short, long)]
+    pub disk_number: u32,
+
+    /// Set the title of the song
+    #[arg(short, long)]
+    pub title: String,
+
+    /// Set the track number.
+    #[arg(short='n', long="number")]
+    pub track_number: u32,
+
 }
